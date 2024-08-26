@@ -3,10 +3,10 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 
 # Загрузка модели
-model = load_model('model/my_model.keras')
+model = load_model('model/my_model_v2.keras')
 
 # Загрузка словаря токенов
-with open('model/vectorize_layer.pkl', 'rb') as file:
+with open('model/vectorize_layer_v2.pkl', 'rb') as file:
     vocabulary = pickle.load(file)
 
 # Восстановление слоя векторизации
@@ -37,8 +37,10 @@ test_cases = [
     "We are located at Hauptstraße 52, 56729 Weiler.",
     "The main office is at Hauptstraße 52, 56729 Weiler.",
     "To get directions, refer to Hauptstraße 52, 56729 Weiler.",
-    "Please direct all communications to Hauptstraße 52, 56729 Weiler.",
-    "Make sure to visit Pobeda street 52, 56729 Weiler for updates."
+    "Please direct all communications to Mullerstraße 52, 56729 Weiler.",
+    "Make sure to visit Pobeda street 52, 56729 Weiler for updates.",
+    """to: Musterstraße 12 12345 Stuttgart Deutschland""",
+    
 ]
 max_len = max(len(text.split()) for text in test_cases)
  

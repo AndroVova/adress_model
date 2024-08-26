@@ -1,4 +1,8 @@
 venv
+gpu_env
+
+
 .vscode
 model 
 resources
+temp_files

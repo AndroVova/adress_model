@@ -1,15 +1,15 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import pickle
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model # type: ignore
+from tensorflow.keras.preprocessing.sequence import pad_sequences # type: ignore
 
-# Загрузка модели
-model = load_model('model/my_model_v2.keras')
+model = load_model('model/my_model_v3.keras')
 
-# Загрузка словаря токенов
-with open('model/vectorize_layer_v2.pkl', 'rb') as file:
+with open('model/vectorize_layer_v3.pkl', 'rb') as file:
     vocabulary = pickle.load(file)
 
-# Восстановление слоя векторизации
 vectorize_layer = tf.keras.layers.TextVectorization(
     ragged=False,
     max_tokens=len(vocabulary),
@@ -39,30 +39,36 @@ test_cases = [
     "To get directions, refer to Hauptstraße 52, 56729 Weiler.",
     "Please direct all communications to Mullerstraße 52, 56729 Weiler.",
     "Make sure to visit Pobeda street 52, 56729 Weiler for updates.",
-    """to: Musterstraße 12 12345 Stuttgart Deutschland""",
+    "to: Musterstraße 12 12345 Stuttgart Deutschland",
     
 ]
-max_len = max(len(text.split()) for text in test_cases)
- 
+# max_len = max(len(text.split()) for text in test_cases)
+max_len = 148
+
 with open('resources/predictions.txt', 'w', encoding='utf-8') as file:
     for text in test_cases:
         example_sequence = vectorize_layer([text])
-        predictions = model.predict(example_sequence)
         
-        # Получение словаря токенов
+        example_sequence_padded = pad_sequences(
+            example_sequence, 
+            padding='post', 
+            maxlen=max_len
+        )
+        
+        predictions = model.predict(example_sequence_padded)
+        
         vocab = vectorize_layer.get_vocabulary()
         token_to_word = {i: word for i, word in enumerate(vocab)}
         
-        # Формирование строк для записи
         file.write(f"Текст: {text}\n")
         file.write(f"Предсказания:\n")
         
-        # Получение токенов и предсказаний
         tokens = example_sequence[0].numpy()
         pred_values = predictions[0].tolist()
         
         for token, pred in zip(tokens, pred_values):
             word = token_to_word.get(token, '[UNK]')
-            file.write(f"{word} - {pred}\n")
+            if pred[0] > 0.5 :
+                file.write(f"{word} - {pred}\n")
         
         file.write("\n")

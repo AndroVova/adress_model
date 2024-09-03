@@ -2,6 +2,7 @@ import pandas as pd
 import random
 import csv
 import os
+from tqdm import tqdm
 
 
 unique_streets_df = pd.read_csv('resources/Street_Names (1).csv')
@@ -24,6 +25,7 @@ def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/lab
     start_templates = [
         "{address} is the address we are looking for.",
         "{address} is the location to visit.",
+        "{address} is the location to get.",
         "{address} is where you should go.",
         "{address} is the correct location.",
         "{address} is the destination address.",
@@ -44,6 +46,7 @@ def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/lab
         "The office is located at {address} on the second floor.",
         "For assistance, visit {address} in the town center.",
         "Your destination, {address}, is on the right.",
+        "The delivery should be made to {address}. Thank you!",
         "The new branch is at {address}, as per the latest update."
     ]
     
@@ -55,7 +58,7 @@ def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/lab
         "Please address all correspondence to {address}.",
         "Send all inquiries to {address}.",
         "The address you need is {address}.",
-        "Make sure to visit {address}.",
+        "Please make sure to visit {address}.",
         "Our office is located at {address}.",
         "The final destination is {address}."
     ]
@@ -66,7 +69,7 @@ def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/lab
         writer = csv.writer(file)
         writer.writerow(["text", "labels"])
         
-        for i in range(num_samples):
+        for i in tqdm(range(num_samples), desc="Processing samples"):
             address = generate_address()
             template = random.choice(all_templates)
             text = template.format(address=address)
@@ -82,11 +85,7 @@ def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/lab
                 label[j] = 1
             
             writer.writerow([text, ' '.join(map(str, label))])
-            
-            if i % 100 == 0:
-                os.system('cls')
-                print(f"{i}/{num_samples} samples processed")
     
     print(f"Data saved to {file_path}")
     
-create_labeled_data_with_tokens(num_samples=150000, file_path="resources/labeled_data.csv")
+create_labeled_data_with_tokens(num_samples=100000, file_path="resources/labeled_data1.csv")

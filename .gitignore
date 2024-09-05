@@ -1,7 +1,3 @@
-venv
-gpu_env
-
-
 .vscode
 model 
 resources

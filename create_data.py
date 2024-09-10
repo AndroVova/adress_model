@@ -8,6 +8,47 @@ unique_streets_df = pd.read_csv('resources/Street_Names (1).csv')
 unique_cities_df = pd.read_csv('resources/unique_cities.csv')
 cleaned_geonames_postal_code_df = pd.read_csv('resources/cleaned_geonames_postal_code.csv')
 unique_names_df = pd.read_csv('resources/unique_names.csv', header=None, names=['name'])
+unique_companies_df = pd.read_csv('resources/German_companies_names.csv')
+
+german_english_floors = [
+    "3. OG", "App. 4", "1. Stock", "2. OG", "4. Stock", "EG", "Dachgeschoss", 
+    "Keller", "Souterrain", "Penthouse", "5. OG", "App. 12", "DG", "UG", 
+    "3. Stock rechts", "4. OG links", "3rd Floor", "Apt. 4", "1st Floor", "2nd Floor", "4th Floor", "Ground Floor", 
+    "Attic", "Basement", "Lower Ground", "Penthouse", "5th Floor", "Apt. 12", 
+    "Top Floor", "Underground Floor", "3rd Floor Right", "4th Floor Left"
+]
+prefixes = [
+    "Herr", "Frau", "Dr.", "Prof.", "Herr Dr.", "Frau Dr.", 
+    "Herr Prof.", "Frau Prof.", "Herr Dipl.-Ing.", "Frau Dipl.-Ing.",
+    "Herr Mag.", "Frau Mag.", "Herr Ing.", "Frau Ing.", "Mr.", "Ms.",
+    "Mrs.", "Mx.", "Sir", "Madam", "Lord", "Lady"
+]
+countries = [
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", 
+    "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", 
+    "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", 
+    "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", 
+    "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", 
+    "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", 
+    "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", 
+    "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", 
+    "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", 
+    "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", 
+    "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", 
+    "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", 
+    "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", 
+    "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", 
+    "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", 
+    "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", 
+    "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", 
+    "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", 
+    "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", 
+    "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", 
+    "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", 
+    "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", 
+    "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", 
+    "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+]
 
 class Address:
     def __init__(self, name, company, position, country, street_address, postal_code, city):
@@ -22,8 +63,12 @@ class Address:
     @staticmethod
     def generate_address():
         streets = unique_streets_df['street_name'].tolist()
-        house_number = random.randint(1, 100)
-        floor_app = random.choice(["3. OG", "App. 4", "1. Stock"]) # todo
+        
+        house_number = str(random.randint(1, 100)) if random.random() < 0.5 else str(random.randint(1, 10))
+            
+        if random.random() < 0.4:
+            house_number += random.choice('aaaabbbbccccdddefg')
+        floor_app = random.choice(german_english_floors) # ToDo:
         
         city_data = random.choice(cleaned_geonames_postal_code_df.values)
         postal_code = str(city_data[1])
@@ -34,21 +79,45 @@ class Address:
 
     @staticmethod
     def generate_name():
-        name = random.choice(unique_names_df['name'].tolist())
-        name = name[0] + name[1:].lower()
-        surname = random.choice(unique_names_df['name'].tolist())
-        surname = surname[0] + surname[1:].lower()
-        full_name = f"{name} {surname}"
+        try:
+            prefix = ""
+            if random.random() < 0.3:
+                prefix = random.choice(prefixes)
+            name = random.choice(unique_names_df['name'].tolist())
+            surname = random.choice(unique_names_df['name'].tolist())
+
+            if isinstance(name, str):
+                name = name[:1].upper() + name[1:].lower()
+            else:
+                raise ValueError("Invalid type for name")
+
+            if isinstance(surname, str):
+                surname = surname[:1].upper() + surname[1:].lower()
+            else:
+                raise ValueError("Invalid type for surname")
+
+        except Exception as e:
+            print(f"Error: {e}")
+            return "Max Verstappen"
+
+        full_name = f"{prefix} {name} {surname}" if prefix != "" else f"{name} {surname}"
+            
         return full_name
     
         
     @classmethod
     def generate_full_address(cls):
         name = cls.generate_name()
-        company = random.choice(["Musterfirma GmbH", "Tech Solutions AG", "Business Inc."])
-        position = random.choice(["Abteilung Vertrieb", "Manager", "Technician", "Developer"]) # todo
+        company = random.choice(unique_companies_df['name'].tolist())
+
+        position = random.choice([
+            "Abteilung Vertrieb", "Manager", "Technician", "Developer", "Projektleiter", 
+            "Analyst", "Consultant", "Sales Representative", "Teamleiter", "Ingenieur", 
+            "CEO", "CTO", "CFO", "Product Manager", "Support Specialist", "Marketing Coordinator",
+            "Researcher", "HR Manager", "Operations Director", "Data Scientist"
+        ]) # todo
         
-        country = random.choice(["Germany", "France", "Ukraine"]) # todo
+        country = random.choice(countries)
         street_address, postal_code, city = cls.generate_address()
 
         return cls(name, company, position, country, street_address, postal_code, city)
@@ -59,6 +128,8 @@ class Address:
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}",
             f"{self.company}\n{self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
             f"{self.company}\n{self.name}\n{self.street_address}\n{self.postal_code} {self.city}",
+            f"{self.company}\n{self.position} {self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
+            f"{self.company}\n{self.position}\n{self.street_address}\n{self.postal_code} {self.city}",
             f"{self.name}\n{self.position}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
             f"{self.name}\n{self.position}\n{self.street_address}\n{self.postal_code} {self.city}",
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
@@ -103,5 +174,4 @@ def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/lab
 
     print(f"Data saved to {file_path}")
 
-# Вызов функции
-create_labeled_data_with_tokens(num_samples=1000, file_path="resources/test_labeled_data.csv")
+create_labeled_data_with_tokens(num_samples=150000, file_path="resources/test_labeled_data.csv")

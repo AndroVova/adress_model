@@ -2,3 +2,5 @@
 model 
 resources
 temp_files
+
+__pycache__

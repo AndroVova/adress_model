@@ -1,54 +1,113 @@
 import pandas as pd
+import numpy as np
 import random
 import csv
-
 from tqdm import tqdm
+from multiprocessing import Pool
 
-unique_streets_df = pd.read_csv('resources/Street_Names (1).csv')
-unique_cities_df = pd.read_csv('resources/unique_cities.csv')
-cleaned_geonames_postal_code_df = pd.read_csv('resources/cleaned_geonames_postal_code.csv')
+unique_streets_df = pd.read_csv('resources/Street_Names (1).csv', usecols=['street_name'])
+# unique_cities_df = pd.read_csv('resources/unique_cities.csv')
+cleaned_geonames_postal_code_df = pd.read_csv('resources/cleaned_geonames_postal_code.csv', usecols=[1, 2])
 unique_names_df = pd.read_csv('resources/unique_names.csv', header=None, names=['name'])
-unique_companies_df = pd.read_csv('resources/German_companies_names.csv')
+# unique_companies_df = pd.read_csv('resources/German_companies_names.csv')
+companies_df = pd.read_csv('resources/companies_names.csv')
+# occupations_df = pd.read_csv('resources/occupation_names.csv')  
+countries_df = pd.read_csv('resources/countries_list.csv')
 
 german_english_floors = [
     "3. OG", "App. 4", "1. Stock", "2. OG", "4. Stock", "EG", "Dachgeschoss", 
     "Keller", "Souterrain", "Penthouse", "5. OG", "App. 12", "DG", "UG", 
     "3. Stock rechts", "4. OG links", "3rd Floor", "Apt. 4", "1st Floor", "2nd Floor", "4th Floor", "Ground Floor", 
     "Attic", "Basement", "Lower Ground", "Penthouse", "5th Floor", "Apt. 12", 
-    "Top Floor", "Underground Floor", "3rd Floor Right", "4th Floor Left"
+    "Top Floor", "Underground Floor", "3rd Floor Right", "4th Floor Left", 
+    "6. OG", "7. Stock", "8. OG", "9. Stock", "10. OG", "App. 5", "6th Floor", 
+    "7th Floor", "8th Floor", "9th Floor", "10th Floor", "1st Basement", "2nd Basement",
+    "Mezzanine", "Lobby", "Reception", "Main Floor", "Upper Floor", "Lower Floor", 
+    "Service Floor", "Garden Level", "Street Level", "Rear Floor", "Front Floor", 
+    "Middle Floor", "Side Floor", "Left Wing", "Right Wing", "North Wing", 
+    "South Wing", "East Wing", "West Wing", "Suite 101", "Suite 202", "Suite 303", 
+    "Office 1", "Office 2", "Office 3", "Studio 1", "Studio 2", "Studio 3", 
+    "Rooftop", "Terrace", "Balcony Level", "Gallery Level", "Platform Level", 
+    "Cellar", "Sublevel 1", "Sublevel 2", "Annex", "Main Wing", "Side Annex", 
+    "Podium", "Sky Floor", "Loft", "Atrium", "Sky Lobby", "Observation Deck"
 ]
 prefixes = [
     "Herr", "Frau", "Dr.", "Prof.", "Herr Dr.", "Frau Dr.", 
     "Herr Prof.", "Frau Prof.", "Herr Dipl.-Ing.", "Frau Dipl.-Ing.",
     "Herr Mag.", "Frau Mag.", "Herr Ing.", "Frau Ing.", "Mr.", "Ms.",
-    "Mrs.", "Mx.", "Sir", "Madam", "Lord", "Lady"
+    "Mrs.", "Mx.", "Sir", "Madam", "Lord", "Lady", "Rev.", "Capt.", 
+    "Lt.", "Col.", "Gen.", "Maj.", "Brig.", "Cpt.", "Cmdr.", "Admiral", 
+    "Baron", "Baroness", "Viscount", "Viscountess", "Count", "Countess", 
+    "Duke", "Duchess", "Earl", "Marquis", "Marchioness", "Prince", "Princess", 
+    "King", "Queen", "Emperor", "Empress", "Archduke", "Archduchess", 
+    "Grand Duke", "Grand Duchess", "Sheikh", "Sheikha", "Ayatollah", 
+    "Rabbi", "Pastor", "Father", "Sister", "Brother", "Monsignor", 
+    "His Excellency", "Her Excellency", "Sen.", "Rep.", "Amb.", "Gov.", 
+    "Hon.", "Judge", "Justice", "President", "Chancellor", "Premier", 
+    "Prime Minister", "Deputy", "Councilor", "Counselor", "Attorney", 
+    "Esq.", "Sheriff", "Chief", "Inspector", "Detective", "Sergeant", 
+    "Officer", "Marshal", "Provost", "Principal", "Dean", "Rector", 
+    "Provost", "Warden", "Magistrate", "Consul", "Envoy", "Delegate", 
+    "Commander", "Supreme Leader", "Chairman", "Speaker", "Overseer"
 ]
-countries = [
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", 
-    "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", 
-    "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", 
-    "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", 
-    "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", 
-    "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", 
-    "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", 
-    "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", 
-    "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", 
-    "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", 
-    "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", 
-    "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", 
-    "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", 
-    "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", 
-    "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", 
-    "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", 
-    "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", 
-    "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", 
-    "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", 
-    "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", 
-    "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", 
-    "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", 
-    "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", 
-    "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe", "Deutschland"
+
+positions = [
+    "Abteilung Vertrieb", "Manager", "Technician", "Developer", "Projektleiter", 
+    "Analyst", "Consultant", "Sales Representative", "Teamleiter", "Ingenieur", 
+    "CEO", "CTO", "CFO", "Product Manager", "Support Specialist", "Marketing Coordinator",
+    "Researcher", "HR Manager", "Operations Director", "Data Scientist", "Junior Developer", 
+    "Middle Developer", "Senior Developer", "UX Designer", "UI Designer", "DevOps Engineer", 
+    "System Administrator", "Quality Assurance", "Business Analyst", "Finance Manager", 
+    "Accountant", "Legal Advisor", "Customer Service Representative", "Content Writer", 
+    "Graphic Designer", "Social Media Manager", "IT Support", "Chief Marketing Officer", 
+    "Logistics Coordinator", "Supply Chain Manager", "Product Owner", "Scrum Master", 
+    "Software Architect", "Database Administrator", "Cybersecurity Analyst", "Mobile Developer", 
+    "AI Specialist", "Machine Learning Engineer", "Network Engineer", "Electrical Engineer", 
+    "Mechanical Engineer", "Civil Engineer", "Environmental Consultant", "Biomedical Engineer", 
+    "Event Manager", "Training Specialist", "Talent Acquisition", "Recruiter", "Project Assistant", 
+    "Warehouse Supervisor", "Field Technician", "Photographer", "Videographer", "SEO Specialist", 
+    "Web Developer", "Frontend Developer", "Backend Developer", "Full Stack Developer", 
+    "Operations Manager", "Account Manager", "Creative Director", "PR Specialist", 
+    "Risk Manager", "Investment Analyst", "Portfolio Manager", "Copywriter", "Data Analyst", 
+    "Communications Specialist", "Marketing Strategist", "Automation Engineer", "Quality Control Manager"
 ]
+
+def generate_address():
+    streets = unique_streets_df['street_name'].values
+    house_number = str(np.random.randint(1, 101) if random.random() < 0.5 else np.random.randint(1, 11))
+    if random.random() < 0.4:
+        house_number += random.choice('aaaabbbbccccdddefg')
+    floor_app = random.choice(german_english_floors) #todo
+    city_data = cleaned_geonames_postal_code_df.sample(1).values[0]
+    postal_code, city = str(city_data[0]), city_data[1]
+    street_address = f"{random.choice(streets)} {house_number} {floor_app}"
+    return street_address, postal_code, city
+
+def generate_name():
+    try:
+        prefix = random.choice(prefixes) if random.random() < 0.3 else ""
+        name = random.choice(unique_names_df['name'].values)
+        surname = random.choice(unique_names_df['name'].values)
+        full_name = f"{prefix} {name.title()} {surname.title()}" if prefix else f"{name.title()} {surname.title()}"
+        return full_name
+    except Exception:
+        return "Max Verstappen"
+
+def add_experience_level(position):
+    experience_levels = ["Junior", "Middle", "Senior"]
+    if random.random() < 0.3:
+        level = random.choice(experience_levels)
+        if not any(level in position for level in experience_levels):
+            position = f"{level} {position}"
+    return position
+
+def generate_full_address():
+    name = generate_name()
+    company = random.choice(companies_df.sample(1)['company_name'].values) if random.random() < 0.5 else random.choice(companies_df.sample(1)['short_name'].values)
+    position = add_experience_level(random.choice(positions))
+    country = random.choice(countries_df['сountry'].values)
+    street_address, postal_code, city = generate_address()
+    return Address(name, company, position, country, street_address, postal_code, city)
 
 class Address:
     def __init__(self, name, company, position, country, street_address, postal_code, city):
@@ -60,117 +119,59 @@ class Address:
         self.postal_code = postal_code
         self.city = city
     
-    @staticmethod
-    def generate_address():
-        streets = unique_streets_df['street_name'].tolist()
-        
-        house_number = str(random.randint(1, 100)) if random.random() < 0.5 else str(random.randint(1, 10))
-            
-        if random.random() < 0.4:
-            house_number += random.choice('aaaabbbbccccdddefg')
-        floor_app = random.choice(german_english_floors) # ToDo:
-        
-        city_data = random.choice(cleaned_geonames_postal_code_df.values)
-        postal_code = str(city_data[1])
-        city = city_data[2]
-        
-        street_address = f"{random.choice(streets)} {house_number} {floor_app}"
-        return street_address, postal_code, city
-
-    @staticmethod
-    def generate_name():
-        try:
-            prefix = ""
-            if random.random() < 0.3:
-                prefix = random.choice(prefixes)
-            name = random.choice(unique_names_df['name'].tolist())
-            surname = random.choice(unique_names_df['name'].tolist())
-
-            if isinstance(name, str):
-                name = name[:1].upper() + name[1:].lower()
-            else:
-                raise ValueError("Invalid type for name")
-
-            if isinstance(surname, str):
-                surname = surname[:1].upper() + surname[1:].lower()
-            else:
-                raise ValueError("Invalid type for surname")
-
-        except Exception as e:
-            print(f"Error: {e}")
-            return "Max Verstappen"
-
-        full_name = f"{prefix} {name} {surname}" if prefix != "" else f"{name} {surname}"
-            
-        return full_name
-    
-        
-    @classmethod
-    def generate_full_address(cls):
-        name = cls.generate_name()
-        company = random.choice(unique_companies_df['name'].tolist())
-
-        position = random.choice([
-            "Abteilung Vertrieb", "Manager", "Technician", "Developer", "Projektleiter", 
-            "Analyst", "Consultant", "Sales Representative", "Teamleiter", "Ingenieur", 
-            "CEO", "CTO", "CFO", "Product Manager", "Support Specialist", "Marketing Coordinator",
-            "Researcher", "HR Manager", "Operations Director", "Data Scientist"
-        ]) # todo
-        
-        country = random.choice(countries)
-        street_address, postal_code, city = cls.generate_address()
-
-        return cls(name, company, position, country, street_address, postal_code, city)
-
     def get_address_formats(self):
-        possible_formats = [
+        formats = [
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}",
             f"{self.company}\n{self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
             f"{self.company}\n{self.name}\n{self.street_address}\n{self.postal_code} {self.city}",
             f"{self.company}\n{self.position} {self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
-            f"{self.company}\n{self.position}\n{self.street_address}\n{self.postal_code} {self.city}",
+            f"{self.company}\n{self.position} {self.name}\n{self.street_address}\n{self.postal_code} {self.city}",
             f"{self.name}\n{self.position}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
             f"{self.name}\n{self.position}\n{self.street_address}\n{self.postal_code} {self.city}",
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}",
         ]
-        return possible_formats
+        return formats
 
     def get_random_format(self):
         return random.choice(self.get_address_formats())
 
-def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/labeled_data1.csv"):
+def process_sample(_):
+    address_obj = generate_full_address()
+    full_address = address_obj.get_random_format()
+    full_address = full_address.replace('{', '{{').replace('}', '}}')
+    template = "{address}"
+    text = template.format(address=full_address)
+    
+    tokens = text.split()
+    labels = ['OOV'] * len(tokens)
+
+    for idx, token in enumerate(tokens):
+        if token in address_obj.name.split():
+            labels[idx] = 'PER'
+        elif token in address_obj.company.split():
+            labels[idx] = 'COMP'
+        elif token in address_obj.position.split():
+            labels[idx] = 'POS'
+        elif token == address_obj.postal_code:
+            labels[idx] = 'ZIP'
+        elif token in address_obj.street_address.split():
+            labels[idx] = 'STREET'
+        elif token in address_obj.city.split():
+            labels[idx] = 'CITY'
+        elif token in address_obj.country.split():
+            labels[idx] = 'COUNTRY'
+    
+    return [text, ' '.join(labels)]
+
+def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/labeled_data.csv"):
     with open(file_path, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["text", "labels"])
-
-        for _ in tqdm(range(num_samples), desc="Processing samples"):
-            address_obj = Address.generate_full_address()
-            full_address = address_obj.get_random_format()
-            full_address = full_address.replace('{', '{{').replace('}', '}}')
-            template = "{address}"
-            text = template.format(address=full_address)
-            
-            tokens = text.split()
-            labels = ['OOV'] * len(tokens)
-
-            for idx, token in enumerate(tokens):
-                if token in address_obj.name.split():
-                    labels[idx] = 'PER'
-                elif token in address_obj.company.split():
-                    labels[idx] = 'COMP'
-                elif token in address_obj.position.split():
-                    labels[idx] = 'POS'
-                elif token == address_obj.postal_code:
-                    labels[idx] = 'ZIP'
-                elif token in address_obj.street_address.split():
-                    labels[idx] = 'STREET'
-                elif token in address_obj.city.split():
-                    labels[idx] = 'CITY'
-                elif token in address_obj.country.split():
-                    labels[idx] = 'COUNTRY'
-            writer.writerow([text, ' '.join(labels)])
+        with Pool() as pool:
+            for result in tqdm(pool.imap_unordered(process_sample, range(num_samples)), total=num_samples, desc="Processing samples"):
+                writer.writerow(result)
 
     print(f"Data saved to {file_path}")
 

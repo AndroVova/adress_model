@@ -90,7 +90,7 @@ def main():
     model.fit(
         texts_train,
         padded_labels_train, 
-        epochs=10, 
+        epochs=5, 
         batch_size=64, 
         validation_data=(texts_val, padded_labels_val)
     )

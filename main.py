@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras import layers, Input, Model # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
+from tensorflow.keras.layers import TimeDistributed
 from glove_embeddings import create_embedding_layer
 from class_names_layer import ClassNamesLayer
 
@@ -49,11 +50,11 @@ def create_model(vectorize_layer, embedding_layer, num_classes, label_encoder):
     
     attention = layers.Attention()([x, x])
     
-    x = layers.Dense(64, activation='relu')(attention)
+    x = TimeDistributed(layers.Dense(64, activation='relu'))(attention)
     
     class_names_layer = ClassNamesLayer(class_names=label_encoder.classes_, name='class_names_layer')(x)
     
-    outputs = layers.Dense(num_classes, activation='softmax')(class_names_layer)
+    outputs = TimeDistributed(layers.Dense(num_classes, activation='softmax'))(class_names_layer)
     
     model = Model(inputs=inputs, outputs=outputs)
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -88,12 +89,15 @@ def main():
     texts_val = tf.convert_to_tensor(texts_val, dtype=tf.string)
 
     model.fit(
-        texts_train,
-        padded_labels_train, 
-        epochs=5, 
-        batch_size=64, 
-        validation_data=(texts_val, padded_labels_val)
-    )
+    texts_train,
+    padded_labels_train, 
+    epochs=20,
+    batch_size=64, 
+    validation_data=(texts_val, padded_labels_val),
+    callbacks=[
+        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    ]
+)
 
     tf.keras.models.save_model(model, 'model/my_model_v5.keras')
 

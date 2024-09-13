@@ -25,7 +25,7 @@ def create_embedding_layer(glove_file_path, vectorize_layer, embedding_dim, max_
         output_dim=embedding_dim,
         weights=[embedding_matrix],
         input_length=max_len,
-        trainable=True
+        trainable=False
     )
     
     return embedding_layer

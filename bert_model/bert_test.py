@@ -1,6 +1,8 @@
 import os
+import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from tensorflow.keras.models import load_model # type: ignore
+sys.path.append(os.getcwd())
 from class_names_layer import ClassNamesLayer
 from bert_layer import BertLayer
 from transformers import BertTokenizer

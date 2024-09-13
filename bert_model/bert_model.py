@@ -7,17 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras import layers, Input, Model # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
 from class_names_layer import ClassNamesLayer
-from transformers import TFBertModel
-from tensorflow.keras.layers import Layer
-
-class BertLayer(Layer):
-    def __init__(self, model_name='bert-base-uncased', **kwargs):
-        super(BertLayer, self).__init__(**kwargs)
-        self.bert = TFBertModel.from_pretrained(model_name)
-
-    def call(self, inputs):
-        input_ids, attention_mask = inputs
-        return self.bert([input_ids, attention_mask])[0]
+from bert_layer import BertLayer
 
 def check_gpu():
     gpus = tf.config.list_physical_devices('GPU')

@@ -1,6 +1,26 @@
-.vscode
 model 
 resources
 temp_files
 
-__pycache__
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# PyInstaller
+*.spec
+
+# VS Code settings
+.vscode/

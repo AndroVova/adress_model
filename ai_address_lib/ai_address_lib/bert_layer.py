@@ -16,7 +16,6 @@ class BertLayer(Layer):
     def get_config(self):
         config = super(BertLayer, self).get_config()
         config.update({
-            "model_name": 'bert-base-uncased'
+            "model_name": self.bert.name
         })
         return config
-    

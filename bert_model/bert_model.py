@@ -103,7 +103,7 @@ def main():
     )
 
 
-    tf.keras.models.save_model(model, 'model/my_model_v6.keras')
+    tf.keras.models.save_model(model, 'model/my_model_v7.keras')
 
 if __name__ == "__main__":
     main()

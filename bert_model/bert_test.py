@@ -1,6 +1,10 @@
 import os
 import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+from transformers import logging
+logging.set_verbosity_error()
+    
 from tensorflow.keras.models import load_model # type: ignore
 sys.path.append(os.getcwd())
 from class_names_layer import ClassNamesLayer
@@ -66,7 +70,7 @@ def tokenize_texts(texts, tokenizer, max_len):
     return inputs['input_ids'], inputs['attention_mask']
 
 def main():
-    model_path = 'model/my_model_v6.keras'
+    model_path = 'model/my_model_v7.keras'
     output_file_path = 'resources/bert_predictions.txt'
     test_cases = [
         "Safoshyn Volodymyr\nBlagovisna street 11\n17209 Kyiv\nUkraine",

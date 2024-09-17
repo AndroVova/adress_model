@@ -9,12 +9,9 @@ from transformers import BertTokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 unique_streets_df = pd.read_csv('resources/Street_Names (1).csv', usecols=['street_name'])
-# unique_cities_df = pd.read_csv('resources/unique_cities.csv')
 cleaned_geonames_postal_code_df = pd.read_csv('resources/cleaned_geonames_postal_code.csv', usecols=[1, 2])
 unique_names_df = pd.read_csv('resources/unique_names.csv', header=None, names=['name'])
-# unique_companies_df = pd.read_csv('resources/German_companies_names.csv')
 companies_df = pd.read_csv('resources/companies_names.csv')
-# occupations_df = pd.read_csv('resources/occupation_names.csv')  
 countries_df = pd.read_csv('resources/countries_list.csv')
 
 german_english_floors = [

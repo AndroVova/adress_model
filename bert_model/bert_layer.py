@@ -1,13 +1,13 @@
-from tensorflow.keras.layers import Layer
-from transformers import TFBertModel
+from tensorflow.keras.layers import Layer # type: ignore
+from transformers import TFAlbertModel
 import tensorflow as tf
-from keras.saving import register_keras_serializable
+from keras.saving import register_keras_serializable # type: ignore
 
 @register_keras_serializable()
 class BertLayer(Layer):
-    def __init__(self, model_name='bert-base-uncased', **kwargs):
+    def __init__(self, model_name='albert-base-v2', **kwargs):
         super(BertLayer, self).__init__(**kwargs)
-        self.bert = TFBertModel.from_pretrained(model_name)
+        self.bert = TFAlbertModel.from_pretrained(model_name)
 
     def call(self, inputs):
         input_ids, attention_mask = inputs
@@ -16,7 +16,7 @@ class BertLayer(Layer):
     def get_config(self):
         config = super(BertLayer, self).get_config()
         config.update({
-            "model_name": 'bert-base-uncased'
+            "model_name": 'albert-base-v2'
         })
         return config
     

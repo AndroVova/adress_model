@@ -1,4 +1,4 @@
-from transformers import BertTokenizer, logging
+from transformers import AlbertTokenizer, logging
 logging.set_verbosity_error()
 import os
 import warnings
@@ -13,7 +13,7 @@ tf.get_logger().setLevel(logging.ERROR)
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 def load_tokenizer():
-    return BertTokenizer.from_pretrained('bert-base-uncased')
+    return AlbertTokenizer.from_pretrained('albert-base-v2')
 
 def tokenize_texts(texts, tokenizer, max_len):
     inputs = tokenizer(

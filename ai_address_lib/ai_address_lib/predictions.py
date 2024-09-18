@@ -45,13 +45,13 @@ def process_predictions(text, predictions, tokenizer, classes, write_func):
     current_word = ""
 
     for token in tokens:
-        if token.startswith("##"):
-            current_word += token[2:]
-        else:
+        if token.startswith("▁"):
             if current_word:
                 if idx < len(pred_values):
                     write_current_word(classes, write_func, pred_values, idx, current_word)
-            current_word = token
+            current_word = token[1:]
+        else:
+            current_word += token
         
         idx += 1
 

@@ -1,5 +1,5 @@
 from tensorflow.keras.layers import Layer
-from transformers import TFBertModel
+from transformers import TFAlbertModel
 from keras.saving import register_keras_serializable
 import os
 import logging
@@ -12,9 +12,9 @@ tf.get_logger().setLevel(logging.ERROR)
 
 @register_keras_serializable()
 class BertLayer(Layer):
-    def __init__(self, model_name='bert-base-uncased', **kwargs):
+    def __init__(self, model_name='albert-base-v2', **kwargs):
         super(BertLayer, self).__init__(**kwargs)
-        self.bert = TFBertModel.from_pretrained(model_name)
+        self.bert = TFAlbertModel.from_pretrained(model_name)
 
     def call(self, inputs):
         input_ids, attention_mask = inputs

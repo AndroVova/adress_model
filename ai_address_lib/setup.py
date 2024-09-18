@@ -11,6 +11,7 @@ setup(
         'h5py>=3.11.0',           
         'scipy>=1.14.1',
         'tf-keras', 
+        'sentencepiece'
     ],
     description='Library for adress model predictions',
     author='vova',

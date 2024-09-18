@@ -4,9 +4,9 @@ import random
 import csv
 from tqdm import tqdm
 from multiprocessing import Pool
-from transformers import BertTokenizer
+from transformers import AlbertTokenizer
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
 
 unique_streets_df = pd.read_csv('resources/Street_Names (1).csv', usecols=['street_name'])
 cleaned_geonames_postal_code_df = pd.read_csv('resources/cleaned_geonames_postal_code.csv', usecols=[1, 2])
@@ -185,4 +185,4 @@ def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/lab
 
     print(f"Data saved to {file_path}")
 
-create_labeled_data_with_tokens(num_samples=150000, file_path="resources/test_labeled_data123123.csv")
+create_labeled_data_with_tokens(num_samples=150000, file_path="resources/albert_labeled_data.csv")

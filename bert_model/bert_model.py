@@ -39,7 +39,7 @@ def prepare_data(file_path):
     )
     return texts_train, texts_val, labels_train, labels_val, label_encoder, num_classes
 
-from transformers import TFBertModel, BertTokenizer
+from transformers import TFAlbertModel, AlbertTokenizer
 
 def create_model_with_bert(max_len, num_classes, class_names):
     input_ids = Input(shape=(max_len,), dtype=tf.int32, name='input_ids')
@@ -56,7 +56,7 @@ def create_model_with_bert(max_len, num_classes, class_names):
     outputs = layers.Dense(num_classes, activation='softmax')(class_names_layer)
     
     model = Model(inputs=[input_ids, attention_mask], outputs=outputs)
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), loss='categorical_crossentropy', metrics=['accuracy'])
     
     return model
 
@@ -64,10 +64,10 @@ def create_model_with_bert(max_len, num_classes, class_names):
 def main():
     check_gpu()
 
-    file_path = "resources/bert_labeled_data.csv"
+    file_path = "resources/albert_labeled_data.csv"
     texts_train, texts_val, labels_train, labels_val, label_encoder, num_classes = prepare_data(file_path)
 
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
     max_len = max(len(text.split()) for text in texts_train)
     max_len = min(max_len, 128)
 
@@ -94,7 +94,7 @@ def main():
     model.fit(
         [train_encodings['input_ids'], train_encodings['attention_mask']],
         padded_labels_train, 
-        epochs=10, 
+        epochs=5, 
         batch_size=64, 
         validation_data=([val_encodings['input_ids'], val_encodings['attention_mask']], padded_labels_val),
         callbacks=[
@@ -103,7 +103,7 @@ def main():
     )
 
 
-    tf.keras.models.save_model(model, 'model/my_model_v7.keras')
+    tf.keras.models.save_model(model, 'model/my_model_v8.keras')
 
 if __name__ == "__main__":
     main()

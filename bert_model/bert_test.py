@@ -9,7 +9,7 @@ from tensorflow.keras.models import load_model # type: ignore
 sys.path.append(os.getcwd())
 from class_names_layer import ClassNamesLayer
 from bert_layer import BertLayer
-from transformers import BertTokenizer
+from transformers import AlbertTokenizer
 
 def load_custom_model(model_path):
     return load_model(
@@ -37,16 +37,15 @@ def write_predictions_to_file(file, text, predictions, tokenizer, classes):
     current_word = ""
 
     for token in tokens:
-        if token.startswith("##"):
-            current_word += token[2:]
-        else:
+        if token.startswith("▁"):
             if current_word:
                 if idx < len(pred_values):
                     max_index = pred_values[idx - 1].index(max(pred_values[idx - 1]))
                     class_name = classes[max_index] if max_index < len(classes) else "UNKNOWN"
                     file.write(f"{current_word} -> Class: {class_name} - {pred_values[idx - 1]} \n")
-            
-            current_word = token
+            current_word = token[1:]
+        else:
+            current_word += token
         
         idx += 1
 
@@ -70,7 +69,7 @@ def tokenize_texts(texts, tokenizer, max_len):
     return inputs['input_ids'], inputs['attention_mask']
 
 def main():
-    model_path = 'model/my_model_v7.keras'
+    model_path = 'model/my_model_v8.keras'
     output_file_path = 'resources/bert_predictions.txt'
     test_cases = [
         "Safoshyn Volodymyr\nBlagovisna street 11\n17209 Kyiv\nUkraine",
@@ -91,7 +90,7 @@ def main():
     ]
 
     model = load_custom_model(model_path)
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
     max_len = model.input_shape[0][1]
     classes = get_classes_from_model(model)
 

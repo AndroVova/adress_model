@@ -1,5 +1,17 @@
 from tensorflow.keras import layers # type: ignore
+
+import os
+import warnings
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 import tensorflow as tf
+import logging
+
+tf.get_logger().setLevel(logging.ERROR)
+warnings.filterwarnings('ignore', category=FutureWarning)
+
 
 class ClassNamesLayer(layers.Layer):
     def __init__(self, class_names, **kwargs):

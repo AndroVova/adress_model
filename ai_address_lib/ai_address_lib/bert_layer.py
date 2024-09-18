@@ -1,7 +1,14 @@
 from tensorflow.keras.layers import Layer
 from transformers import TFBertModel
-import tensorflow as tf
 from keras.saving import register_keras_serializable
+import os
+import logging
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+import tensorflow as tf
+tf.get_logger().setLevel(logging.ERROR)
+
 
 @register_keras_serializable()
 class BertLayer(Layer):

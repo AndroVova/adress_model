@@ -73,6 +73,13 @@ positions = [
 ]
 
 def generate_address():
+    """
+    Generates a random address using pre-defined datasets of streets, house numbers, floors, 
+    cities, and postal codes.
+
+    Returns:
+        tuple: A tuple containing the generated street address, postal code, and city.
+    """
     streets = unique_streets_df['street_name'].values
     house_number = str(np.random.randint(1, 101) if random.random() < 0.5 else np.random.randint(1, 11))
     if random.random() < 0.4:
@@ -84,6 +91,13 @@ def generate_address():
     return street_address, postal_code, city
 
 def generate_name():
+    """
+    Generates a random name, optionally including a prefix.
+
+    Returns:
+        str: A randomly generated full name.
+        In case of an exception, returns "Max Verstappen".
+    """
     try:
         prefix = random.choice(prefixes) if random.random() < 0.3 else ""
         name = random.choice(unique_names_df['name'].values)
@@ -94,6 +108,15 @@ def generate_name():
         return "Max Verstappen"
 
 def add_experience_level(position):
+    """
+    Adds an experience level (Junior, Middle, Senior) to the given job position with a 30% probability.
+
+    Args:
+        position (str): The job position to which the experience level might be added.
+    
+    Returns:
+        str: The position with an experience level added, if applicable.
+    """
     experience_levels = ["Junior", "Middle", "Senior"]
     if random.random() < 0.3:
         level = random.choice(experience_levels)
@@ -102,6 +125,12 @@ def add_experience_level(position):
     return position
 
 def generate_full_address():
+    """
+    Generates a full address including name, company, position, country, and street address.
+
+    Returns:
+        Address: An instance of the Address class containing the generated information.
+    """
     name = generate_name()
     company = random.choice(companies_df.sample(1)['company_name'].values) if random.random() < 0.5 else random.choice(companies_df.sample(1)['short_name'].values)
     position = add_experience_level(random.choice(positions))
@@ -110,6 +139,18 @@ def generate_full_address():
     return Address(name, company, position, country, street_address, postal_code, city)
 
 class Address:
+    """
+    A class to represent an address with various formatting options.
+    
+    Attributes:
+        name (str): The person's name.
+        company (str): The associated company name.
+        position (str): The job position.
+        country (str): The country.
+        street_address (str): The street address.
+        postal_code (str): The postal code.
+        city (str): The city.
+    """
     def __init__(self, name, company, position, country, street_address, postal_code, city):
         self.name = name
         self.company = company
@@ -120,6 +161,12 @@ class Address:
         self.city = city
     
     def get_address_formats(self):
+        """
+        Generates different formats of the address.
+
+        Returns:
+            list: A list of different formatted address strings.
+        """
         formats = [
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}\n{self.country}",
             f"{self.name}\n{self.street_address}\n{self.postal_code} {self.city}",
@@ -135,9 +182,24 @@ class Address:
         return formats
 
     def get_random_format(self):
+        """
+        Returns a randomly selected address format.
+
+        Returns:
+            str: A randomly chosen formatted address string.
+        """
         return random.choice(self.get_address_formats())
 
 def process_sample(_):
+    """
+    Generates a sample full address and labels the corresponding words with entity labels.
+
+    Args:
+        _ (int): Unused, included for parallel processing.
+
+    Returns:
+        list: A list containing the generated text and the corresponding labels.
+    """
     address_obj = generate_full_address()
     full_address = address_obj.get_random_format()
     full_address = full_address.replace('{', '{{').replace('}', '}}')
@@ -176,6 +238,14 @@ def process_sample(_):
     return [text, ' '.join(labels)]
 
 def create_labeled_data_with_tokens(num_samples=100000, file_path="resources/labeled_data.csv"):
+    """
+    Generates labeled data by creating random addresses and labeling their components. 
+    The output is saved in a CSV file.
+
+    Args:
+        num_samples (int): The number of samples to generate. Default is 100,000.
+        file_path (str): The file path where the CSV file will be saved. Default is "resources/labeled_data.csv".
+    """
     with open(file_path, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["text", "labels"])
